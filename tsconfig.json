@@ -8,7 +8,7 @@
     "esModuleInterop": true,
     "resolveJsonModule": true,
     "rootDir": "./",
-    "outDir": "./dist/",
+    "outDir": "./build/",
     "sourceMap": true
   },
   "include": ["./src/**/*.ts"]

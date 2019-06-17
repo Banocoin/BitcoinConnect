@@ -1,30 +1,50 @@
+const path = require("path");
 module.exports = {
-  apps : [{
-    name: 'bridge',
-    script: 'dist/src/index.js',
-
-    // Options reference: https://pm2.io/doc/en/runtime/reference/ecosystem-file/
-    args: 'one two',
-    instances: 1,
-    autorestart: true,
-    watch: false,
-    max_memory_restart: '2G',
-    env: {
-      NODE_ENV: 'development'
-    },
-    env_production: {
-      NODE_ENV: 'production'
+  apps: [
+    {
+      name: "bifrost",
+      script: "build/index.js",
+      instances: 1,
+      autorestart: true,
+      watch: false,
+      max_memory_restart: "2G",
+      env: {
+        NODE_ENV: "development",
+        LOG_PATH: path.resolve(__dirname, "./.log")
+      },
+      env_production: {
+        NODE_ENV: "production",
+        LOG_PATH: path.resolve(__dirname, "./.log")
+      }
     }
-  }],
-
-  deploy : {
-    production : {
-      user : 'node',
-      host : '212.83.163.1',
-      ref  : 'origin/master',
-      repo : 'git@github.com:repo.git',
-      path : '/var/www/production',
-      'post-deploy' : 'npm install && pm2 reload ecosystem.config.js --env production'
+  ],
+  deploy: {
+    // "production" is the environment name
+    production: {
+      // SSH key path, default to $HOME/.ssh
+      //   key: "~/Desktop/relay",
+      // SSH user
+      user: "root",
+      // SSH host
+      host: ["hurrytospring.com"],
+      // SSH options with no command-line flag, see 'man ssh'
+      // can be either a single string or an array of strings
+      ssh_options: "StrictHostKeyChecking=no",
+      // GIT remote/branch
+      ref: "origin/vite",
+      // GIT remote
+      repo: "https://github.com/vitelabs/node-walletconnect-bridge.git",
+      // path in the server
+      path: "/var/www/bifrost",
+      // Pre-setup command or path to a script on your local machine
+      //   'pre-setup': "apt-get install git ; ls -la",
+      //   // Post-setup commands or path to a script on the host machine
+      //   // eg: placing configurations in the shared dir etc
+      "post-setup": "ls -la",
+      // pre-deploy action
+      //   pre-deploy-local: "echo 'This is a local executed command'"
+      // post-deploy action
+      "post-deploy": "npm install && npm run build"
     }
   }
 };

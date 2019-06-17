@@ -5,9 +5,9 @@ import config from './config'
 import pubsub from './pubsub'
 import { setNotification } from './notification'
 import pkg from '../package.json'
+import {logger} from "./logger";
 
 const app = fastify({ logger: config.debug })
-
 app.register(Helmet)
 
 // for container health checks
@@ -48,7 +48,7 @@ app.post('/subscribe', (req, res) => {
     })
   }
 
-  setNotification({ topic, webhook })
+  setNotification( topic, webhook )
 
   res.status(200).send({
     success: true
@@ -68,6 +68,6 @@ app.ready(() => {
 const [host, port] = config.host.split(':')
 app.listen(+port, host, (err, address) => {
   if (err) throw err
-  console.log(`Server listening on ${address}`)
+  logger.info(`Server listening on ${address}`)
   app.log.info(`Server listening on ${address}`)
 })

@@ -1,19 +1,19 @@
-import axios from 'axios'
-import { INotification } from './types'
+import axios from "axios";
 
-const notifications: INotification[] = []
+const notifications: Map<string, Set<string>> = new Map();
 
-export const setNotification = (notification: INotification) =>
-  notifications.push(notification)
-export const getNotification = (topic: string) =>
-  notifications.filter(notification => notification.topic === topic)
+export const setNotification = (topic: string, webhook: string) => {
+  const isExist = notifications.get(topic);
+  if (isExist) {
+    isExist.add(webhook);
+  } else {
+    notifications.set(topic, new Set([webhook]));
+  }
+};
+export const getNotification = (topic: string) => notifications.get(topic);
 
 export const pushNotification = (topic: string) => {
-  const notifications = getNotification(topic)
-
-  if (notifications && notifications.length) {
-    notifications.forEach((notification: INotification) =>
-      axios.post(notification.webhook, { topic })
-    )
-  }
-}
+  const notifications = getNotification(topic);
+  notifications &&
+    notifications.forEach(webhook => axios.post(webhook, { topic }));
+};

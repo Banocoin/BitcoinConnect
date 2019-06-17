@@ -1,93 +1,120 @@
-import WebSocket from 'ws'
-import { ISocketMessage, ISocketSub } from './types'
-import { pushNotification } from './notification'
+import WebSocket from "ws";
+import { ISocketMessage } from "./types";
+import { pushNotification } from "./notification";
+import { logger } from "./logger";
 
-const subs: ISocketSub[] = []
-let pubs: ISocketMessage[] = []
+const subs: Map<string, Set<WebSocket>> = new Map();
+let msgs: Map<string, Set<ISocketMessage>> = new Map();
 
-const setSub = (subscriber: ISocketSub) => subs.push(subscriber)
-const getSub = (topic: string) =>
-  subs.filter(
-    subscriber =>
-      subscriber.topic === topic && subscriber.socket.readyState === 1
-  )
+const setSub = (topic: string, socket: WebSocket) => {
+  const queu =
+    subs.get(topic) ||
+    (subs.set(topic, new Set()).get(topic) as Set<WebSocket>);
+  queu.add(socket);
+};
+const getSub = (topic: string) => {
+  const queu = subs.get(topic);
+  if (!queu) return null;
+  const res: Array<WebSocket> = [];
+  const gc: Array<WebSocket> = [];
+  queu.forEach(socket => {
+    if (socket.readyState === 2 || socket.readyState === 3) {
+      gc.push(socket);
+    } else if (socket.readyState === 1) {
+      res.push(socket);
+    }
+  });
+  if (res.length === 0) {
+    subs.delete(topic);
+    return null;
+  }
+  gc.forEach(s => queu.delete(s)); //
+  return res;
+};
 
-const setPub = (socketMessage: ISocketMessage) => pubs.push(socketMessage)
-const getPub = (topic: string) => {
-  const matching = pubs.filter(pending => pending.topic === topic)
-  pubs = pubs.filter(pending => pending.topic !== topic)
-  return matching
-}
-
-function socketSend (socket: WebSocket, socketMessage: ISocketMessage) {
-  if (socket.readyState === 1) {
-    console.log('OUT =>', socketMessage)
-    socket.send(JSON.stringify(socketMessage))
+const setPendingMsgs = (msg: ISocketMessage) => {
+  const queu =
+    msgs.get(msg.topic) ||
+    (msgs.set(msg.topic, new Set()).get(msg.topic) as Set<ISocketMessage>);
+  queu.add(msg);
+};
+const getPendingMsg = (topic: string) => {
+  const matching = msgs.get(topic);
+  if (matching) {
+    msgs.delete(topic);
+    return matching;
   } else {
-    setPub(socketMessage)
+    return null;
+  }
+};
+
+function socketSend(socket: WebSocket, socketMessage: ISocketMessage) {
+  if (socket.readyState === 1) {
+    logger.debug(`out  =>${JSON.stringify(socketMessage)}`);
+    socket.send(JSON.stringify(socketMessage)); // todo--send fail
+  } else {
+    setPendingMsgs(socketMessage);
   }
 }
 
 const SubController = (socket: WebSocket, socketMessage: ISocketMessage) => {
-  const topic = socketMessage.topic
+  const topic = socketMessage.topic;
+  setSub(topic, socket);
 
-  const subscriber = { topic, socket }
+  const pending = getPendingMsg(topic);
 
-  setSub(subscriber)
-
-  const pending = getPub(topic)
-
-  if (pending && pending.length) {
+  if (pending) {
+    // pending.length
     pending.forEach((pendingMessage: ISocketMessage) =>
       socketSend(socket, pendingMessage)
-    )
+    );
   }
-}
+};
 
 const PubController = (socketMessage: ISocketMessage) => {
-  const subscribers = getSub(socketMessage.topic)
+  const subscribers = getSub(socketMessage.topic);
 
   // send push notifications
-  pushNotification(socketMessage.topic)
+  pushNotification(socketMessage.topic);
 
-  if (subscribers.length) {
-    subscribers.forEach((subscriber: ISocketSub) =>
-      socketSend(subscriber.socket, socketMessage)
-    )
+  if (subscribers) {
+    subscribers.forEach((socket: WebSocket) =>
+      socketSend(socket, socketMessage)
+    );
   } else {
-    setPub(socketMessage)
+    setPendingMsgs(socketMessage);
   }
-}
+};
 
 export default (socket: WebSocket, data: WebSocket.Data) => {
-  const message: string = String(data)
+  const message: string = String(data);
 
   if (message) {
-    if (message === 'ping') {
+    if (message === "ping") {
       if (socket.readyState === 1) {
-        socket.send('pong')
+        socket.send("pong");
       }
     } else {
-      let socketMessage: ISocketMessage
+      let socketMessage: ISocketMessage;
 
       try {
-        socketMessage = JSON.parse(message)
+        socketMessage = JSON.parse(message);
 
-        console.log('IN  =>', socketMessage)
+        logger.debug(`IN  =>${JSON.stringify(socketMessage)}`);
 
         switch (socketMessage.type) {
-          case 'sub':
-            SubController(socket, socketMessage)
-            break
-          case 'pub':
-            PubController(socketMessage)
-            break
+          case "sub":
+            SubController(socket, socketMessage);
+            break;
+          case "pub":
+            PubController(socketMessage);
+            break;
           default:
-            break
+            break;
         }
       } catch (e) {
-        console.error(e)
+        logger.error(`parseMsgErr:${JSON.stringify(e)}`);
       }
     }
   }
-}
+};
