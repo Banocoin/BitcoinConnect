@@ -45,7 +45,7 @@ module.exports = {
       //   pre-deploy-local: "echo 'This is a local executed command'"
       // post-deploy action
       "post-deploy":
-        "npm install && npm run build && pm2 start ecoststem.config.js"
+        "npm install && npm run build && pm2 start ecosystem.config.js"
     }
   }
 };
