@@ -22,11 +22,11 @@ module.exports = {
     // "production" is the environment name
     production: {
       // SSH key path, default to $HOME/.ssh
-      //   key: "~/Desktop/relay",
+      key: "~/Desktop/relay",
       // SSH user
-      user: "root",
+      user: "ubuntu",
       // SSH host
-      host: ["hurrytospring.com"],
+      host: ["124.156.121.100"],
       // SSH options with no command-line flag, see 'man ssh'
       // can be either a single string or an array of strings
       ssh_options: "StrictHostKeyChecking=no",
@@ -37,7 +37,6 @@ module.exports = {
       // path in the server
       path: "/var/www/bifrost",
       // Pre-setup command or path to a script on your local machine
-      "pre-setup": "npm install pm2 -g",
       //   // Post-setup commands or path to a script on the host machine
       //   // eg: placing configurations in the shared dir etc
       "post-setup": "ls -la",
