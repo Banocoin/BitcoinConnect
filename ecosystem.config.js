@@ -42,7 +42,6 @@ module.exports = {
       "post-setup": "ls -la",
       // pre-deploy action
       //   pre-deploy-local: "echo 'This is a local executed command'"
-      "pre-deploy":"export NVM_DIR=\"/home/ubuntu/.nvm\" [ -s \"$NVM_DIR/nvm.sh\" ] && \. \"$NVM_DIR/nvm.sh\"",
       // post-deploy action
       "post-deploy":
         "npm install && npm run build && pm2 start ecosystem.config.js"
