@@ -2,10 +2,12 @@ import WebSocket from "ws";
 import { ISocketMessage } from "./types";
 import { pushNotification } from "./notification";
 import { logger } from "./logger";
+import {Agent} from "./statistics";
 
 const subs: Map<string, Set<WebSocket>> = new Map();
 let msgs: Map<string, Set<ISocketMessage>> = new Map();
 
+export const agent=new Agent(subs)
 const setSub = (topic: string, socket: WebSocket) => {
   const queu =
     subs.get(topic) ||
