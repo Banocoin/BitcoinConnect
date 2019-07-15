@@ -29,7 +29,8 @@ app.get("/info", (req, res) => {
 });
 
 app.get("/performance", (req, res) => {
-  res.status(200).send(agent.getStatisticsInfo());
+  const counts=req.query&&req.query['counts']||100
+  res.status(200).send(agent.getStatisticsInfo(Number(counts)));
 });
 
 app.post("/subscribe", (req, res) => {
