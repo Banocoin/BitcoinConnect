@@ -15,7 +15,6 @@ export const logger = createLogger({
   defaultMeta: { service: "bridgeServces" },
   transports: [new transports.File({ dirname: logPath })]
 });
-console.log(9999,isDevelopment)
 if (isDevelopment) {
   logger.add(
     new transports.Console({

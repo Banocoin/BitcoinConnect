@@ -20,7 +20,7 @@ const getSub = (topic: string) => {
   const res: Array<WebSocket> = [];
   const gc: Array<WebSocket> = [];
   queu.forEach(socket => {
-    if (socket.readyState === 2 || socket.readyState === 3) {
+    if (socket.readyState === socket.CLOSED) {
       gc.push(socket);
     } else if (socket.readyState === 1) {
       res.push(socket);

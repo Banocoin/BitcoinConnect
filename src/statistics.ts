@@ -1,6 +1,7 @@
-const STEP = 20 * 60 * 1000;
+const STEP = 30 * 1000;
 const DEAD_COUNT = 3;
 import WebSocket from "ws";
+import { logger } from "./logger";
 
 interface IStatisticsInfo {
   alive: number;
@@ -11,7 +12,7 @@ interface IStatisticsInfo {
 export class Agent {
   private storageMap: Map<string, number>;
   private target: Map<string, Set<WebSocket>>;
-  private statisticsInfo: Map<number, IStatisticsInfo>;
+  private statisticsInfo: Array<IStatisticsInfo>;
   private step: 0;
   private startTime: Date;
   constructor(target: Map<string, Set<WebSocket>>) {
@@ -19,31 +20,26 @@ export class Agent {
     this.storageMap = new Map();
     this.step = 0;
     this.startTime = new Date();
-    this.statisticsInfo = new Map();
-    setTimeout(() => {
+    this.statisticsInfo = [];
+    setInterval(() => {
       this.step += 1;
-      this.statisticsInfo.set(this.step, { alive: 0, gc: 0, notAlive: 0 });
+      const state = { alive: 0, gc: 0, notAlive: 0 };
+
       try {
-        this.checkMap(this.target);
-        this.gcMap(this.target);
-      } catch (e) {}
-    }, 2000);
+        this.checkMap(this.target, state);
+        this.gcMap(this.target, state);
+      } catch (e) {
+        logger.error(e);
+      } finally {
+        this.statisticsInfo.push(state);
+      }
+    }, STEP);
   }
-  checkMap(subs: Map<string, Set<WebSocket>>) {
-    const state = this.statisticsInfo.get(this.step) || {
-      alive: 0,
-      gc: 0,
-      notAlive: 0
-    };
-    for (const key in this.target.keys()) {
-      if (
-        Array.prototype.every.call(
-          this.target.get(key) as Set<WebSocket>,
-          (socket: WebSocket) => {
-            return socket.CLOSED === socket.readyState;
-          }
-        )
-      ) {
+  checkMap(subs: Map<string, Set<WebSocket>>, state: IStatisticsInfo) {
+    for (const key of this.target.keys()) {
+      const t=this.target.get(key);
+      
+      if (!t||Array.from(t).every((s)=>s.readyState===s.CLOSED)) {
         const counts = this.storageMap.get(key);
         if (!counts) {
           this.storageMap.set(key, 1);
@@ -54,17 +50,10 @@ export class Agent {
       } else {
         state.alive += 1;
       }
-      this.statisticsInfo.set(this.step, state);
     }
   }
-  gcMap(subs: Map<string, Set<WebSocket>>) {
-    const state = this.statisticsInfo.get(this.step) || {
-      alive: 0,
-      gc: 0,
-      notAlive: 0
-    };
-
-    for (const key in this.storageMap.keys()) {
+  gcMap(subs: Map<string, Set<WebSocket>>, state: IStatisticsInfo) {
+    for (const key of this.storageMap.keys()) {
       const counter = this.storageMap.get(key);
       if (counter && counter >= DEAD_COUNT) {
         state.gc += 1;
@@ -72,20 +61,13 @@ export class Agent {
         this.target.delete(key);
       }
     }
-    this.statisticsInfo.set(this.step, state);
   }
 
   getStatisticsInfo(n: number = 100) {
-    if (n < this.step) {
-      const p: Map<Number, IStatisticsInfo> = new Map();
-      for (let i = this.step; i >= this.step - n; i--) {
-        p.set(
-          i,
-          this.statisticsInfo.get(i) || { alive: 0, gc: 0, notAlive: 0 }
-        );
-      }
-    } else {
-      return this.statisticsInfo;
-    }
+    return JSON.stringify({
+      data: this.statisticsInfo.slice(-n),
+      step: this.step,
+      startTime: this.startTime.toLocaleString()
+    });
   }
 }
