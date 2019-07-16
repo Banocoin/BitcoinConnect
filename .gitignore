@@ -42,5 +42,6 @@ jspm_packages
 
 dist
 build
+pm2Conf.js
 
 .DS_Store
