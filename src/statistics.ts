@@ -1,5 +1,6 @@
-const STEP = 30 * 1000;
+const STEP = 20*60 * 1000;
 const DEAD_COUNT = 3;
+const MAX_STATISTICS_RECORDS=1000;
 import WebSocket from "ws";
 import { logger } from "./logger";
 
@@ -32,6 +33,9 @@ export class Agent {
         logger.error(e);
       } finally {
         this.statisticsInfo.push(state);
+      }
+      if(this.statisticsInfo.length>MAX_STATISTICS_RECORDS){
+          this.statisticsInfo=this.statisticsInfo.slice(-MAX_STATISTICS_RECORDS)
       }
     }, STEP);
   }
