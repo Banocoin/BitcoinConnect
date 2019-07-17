@@ -8,7 +8,11 @@ import pkg from "../package.json";
 import { logger } from "./logger";
 const startAt = new Date();
 
-const app = fastify({ logger: config.debug });
+const app = fastify({
+  logger: {
+    level: "error"
+  }
+});
 app.register(Helmet);
 
 // for container health checks
@@ -29,7 +33,7 @@ app.get("/info", (req, res) => {
 });
 
 app.get("/performance", (req, res) => {
-  const counts=req.query&&req.query['counts']||100
+  const counts = (req.query && req.query["counts"]) || 100;
   res.status(200).send(agent.getStatisticsInfo(Number(counts)));
 });
 

@@ -1,13 +1,20 @@
-const STEP = 20*60 * 1000;
-const DEAD_COUNT = 3;
-const MAX_STATISTICS_RECORDS=1000;
+
+const STEP = 10 * 60 * 1000;
+const DEAD_COUNT = 6;
+const MAX_STATISTICS_RECORDS = 1000;
+const DEAD_TIME=60*60*1000;
 import WebSocket from "ws";
 import { logger } from "./logger";
+import { ISocketMessage } from './types';
+import {TimeSet} from "./types";
+
 
 interface IStatisticsInfo {
   alive: number;
   gc: number;
   notAlive: number;
+  pendingMsgTopic:number;
+  gcPendingMsg:number;
 }
 
 export class Agent {
@@ -16,15 +23,17 @@ export class Agent {
   private statisticsInfo: Array<IStatisticsInfo>;
   private step: 0;
   private startTime: Date;
-  constructor(target: Map<string, Set<WebSocket>>) {
+  private msgTarget:Map<string,TimeSet<ISocketMessage>>;
+  constructor(target: Map<string, Set<WebSocket>>,msgTarget:Map<string,TimeSet<ISocketMessage>>) {
     this.target = target;
+    this.msgTarget=msgTarget;
     this.storageMap = new Map();
     this.step = 0;
     this.startTime = new Date();
     this.statisticsInfo = [];
     setInterval(() => {
       this.step += 1;
-      const state = { alive: 0, gc: 0, notAlive: 0 };
+      const state = { alive: 0, gc: 0, notAlive: 0,pendingMsgTopic:0,gcPendingMsg:0 };
 
       try {
         this.checkMap(this.target, state);
@@ -34,16 +43,18 @@ export class Agent {
       } finally {
         this.statisticsInfo.push(state);
       }
-      if(this.statisticsInfo.length>MAX_STATISTICS_RECORDS){
-          this.statisticsInfo=this.statisticsInfo.slice(-MAX_STATISTICS_RECORDS)
+      if (this.statisticsInfo.length > MAX_STATISTICS_RECORDS+100) {
+        this.statisticsInfo = this.statisticsInfo.slice(
+          -MAX_STATISTICS_RECORDS
+        );
       }
     }, STEP);
   }
   checkMap(subs: Map<string, Set<WebSocket>>, state: IStatisticsInfo) {
     for (const key of this.target.keys()) {
-      const t=this.target.get(key);
-      
-      if (!t||Array.from(t).every((s)=>s.readyState===s.CLOSED)) {
+      const t = this.target.get(key);
+
+      if (!t || Array.from(t).every(s => s.readyState === s.CLOSED)) {
         const counts = this.storageMap.get(key);
         if (!counts) {
           this.storageMap.set(key, 1);
@@ -64,6 +75,14 @@ export class Agent {
         this.storageMap.delete(key);
         this.target.delete(key);
       }
+    }
+    for (const key of this.msgTarget.keys()){
+        const pendingMsgs=this.msgTarget.get(key);
+        state.pendingMsgTopic+=1;
+        if(pendingMsgs&&(Date.now()-pendingMsgs.updateTime)>=DEAD_TIME){
+           this.msgTarget.delete(key);
+           state.gcPendingMsg+=1;
+        }
     }
   }
 

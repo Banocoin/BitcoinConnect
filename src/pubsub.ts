@@ -3,11 +3,13 @@ import { ISocketMessage } from "./types";
 import { pushNotification } from "./notification";
 import { logger } from "./logger";
 import {Agent} from "./statistics";
+import {TimeSet} from "./types";
 
 const subs: Map<string, Set<WebSocket>> = new Map();
-let msgs: Map<string, Set<ISocketMessage>> = new Map();
+let msgs: Map<string, TimeSet<ISocketMessage>> = new Map();
 
-export const agent=new Agent(subs)
+
+export const agent=new Agent(subs,msgs)
 const setSub = (topic: string, socket: WebSocket) => {
   const queu =
     subs.get(topic) ||
@@ -37,8 +39,9 @@ const getSub = (topic: string) => {
 const setPendingMsgs = (msg: ISocketMessage) => {
   const queu =
     msgs.get(msg.topic) ||
-    (msgs.set(msg.topic, new Set()).get(msg.topic) as Set<ISocketMessage>);
+    (msgs.set(msg.topic, new TimeSet()).get(msg.topic) as TimeSet<ISocketMessage>);
   queu.add(msg);
+  
 };
 const getPendingMsg = (topic: string) => {
   const matching = msgs.get(topic);
