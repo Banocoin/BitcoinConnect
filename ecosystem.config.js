@@ -22,11 +22,11 @@ module.exports = {
     // "production" is the environment name
     production: {
       // SSH key path, default to $HOME/.ssh
-    //   key: "~/Desktop/relay",
+      key: "~/Desktop/relay",
       // SSH user
       user: 'ubuntu',
       // SSH host
-      host: ['52.229.172.41'],
+      host: ['124.156.121.100'],
       // SSH options with no command-line flag, see 'man ssh'
       // can be either a single string or an array of strings
       ssh_options: 'StrictHostKeyChecking=no',
