@@ -37,6 +37,10 @@ app.get("/performance", (req, res) => {
   res.status(200).send(agent.getStatisticsInfo(Number(counts)));
 });
 
+app.post("/setMyPong", (req, res) => {
+    res.status(200).send()
+});
+
 app.post("/subscribe", (req, res) => {
   if (!req.body || typeof req.body !== "object") {
     res.status(400).send({

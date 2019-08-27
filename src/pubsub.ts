@@ -2,14 +2,13 @@ import WebSocket from "ws";
 import { ISocketMessage } from "./types";
 import { pushNotification } from "./notification";
 import { logger } from "./logger";
-import {Agent} from "./statistics";
-import {TimeSet} from "./types";
+import { Agent } from "./statistics";
+import { TimeArray } from "./types";
 
 const subs: Map<string, Set<WebSocket>> = new Map();
-let msgs: Map<string, TimeSet<ISocketMessage>> = new Map();
+let msgs: Map<string, TimeArray<ISocketMessage>> = new Map();
 
-
-export const agent=new Agent(subs,msgs)
+export const agent = new Agent(subs, msgs);
 const setSub = (topic: string, socket: WebSocket) => {
   const queu =
     subs.get(topic) ||
@@ -36,49 +35,43 @@ const getSub = (topic: string) => {
   return res;
 };
 
-const setPendingMsgs = (msg: ISocketMessage) => {
-  const queu =
-    msgs.get(msg.topic) ||
-    (msgs.set(msg.topic, new TimeSet()).get(msg.topic) as TimeSet<ISocketMessage>);
-  queu.add(msg);
-  
-};
-const getPendingMsg = (topic: string) => {
-  const matching = msgs.get(topic);
-  if (matching) {
-    msgs.delete(topic);
-    return matching;
-  } else {
-    return null;
-  }
-};
-
 function socketSend(socket: WebSocket, socketMessage: ISocketMessage) {
+  logger.debug(`send:${socket.readyState}`);
   if (socket.readyState === 1) {
     logger.debug(`out  =>${JSON.stringify(socketMessage)}`);
-    socket.send(JSON.stringify(socketMessage)); // todo--send fail
-  } else {
-    setPendingMsgs(socketMessage);
+    try {
+      socket.send(JSON.stringify(socketMessage)); // todo--send fail
+    } catch (e) {
+      logger.debug(`sendFail:${socketMessage}`);
+    }
   }
 }
 
 const SubController = (socket: WebSocket, socketMessage: ISocketMessage) => {
   const topic = socketMessage.topic;
+  const offset = Number.isInteger((socketMessage.offset) as number)?(socketMessage.offset) as number+1:0;
+  logger.debug(`subbbb:${topic}------offset:${offset}`);
   setSub(topic, socket);
-
-  const pending = getPendingMsg(topic);
-
-  if (pending) {
-    // pending.length
-    pending.forEach((pendingMessage: ISocketMessage) =>
-      socketSend(socket, pendingMessage)
-    );
+  const msgQueu = msgs.get(socketMessage.topic);
+  if (msgQueu&&msgQueu.length) {
+    msgQueu
+      .slice(offset)
+      .forEach((pendingMessage: ISocketMessage) =>
+        socketSend(socket, pendingMessage)
+      );
   }
 };
 
 const PubController = (socketMessage: ISocketMessage) => {
+    logger.debug(`pubController,receive${socketMessage}`)
   const subscribers = getSub(socketMessage.topic);
-
+  let msgQueu = msgs.get(socketMessage.topic);
+  if (!msgQueu) {
+    msgQueu = new TimeArray();
+    msgs.set(socketMessage.topic, msgQueu);
+  }
+  socketMessage.offset= msgQueu.length
+  msgQueu.push(socketMessage);
   // send push notifications
   pushNotification(socketMessage.topic);
 
@@ -86,8 +79,6 @@ const PubController = (socketMessage: ISocketMessage) => {
     subscribers.forEach((socket: WebSocket) =>
       socketSend(socket, socketMessage)
     );
-  } else {
-    setPendingMsgs(socketMessage);
   }
 };
 

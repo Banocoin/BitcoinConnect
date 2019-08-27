@@ -6,7 +6,7 @@ const DEAD_TIME=60*60*1000;
 import WebSocket from "ws";
 import { logger } from "./logger";
 import { ISocketMessage } from './types';
-import {TimeSet} from "./types";
+import {TimeArray} from "./types";
 
 
 interface IStatisticsInfo {
@@ -23,8 +23,8 @@ export class Agent {
   private statisticsInfo: Array<IStatisticsInfo>;
   private step: 0;
   private startTime: Date;
-  private msgTarget:Map<string,TimeSet<ISocketMessage>>;
-  constructor(target: Map<string, Set<WebSocket>>,msgTarget:Map<string,TimeSet<ISocketMessage>>) {
+  private msgTarget:Map<string,TimeArray<ISocketMessage>>;
+  constructor(target: Map<string, Set<WebSocket>>,msgTarget:Map<string,TimeArray<ISocketMessage>>) {
     this.target = target;
     this.msgTarget=msgTarget;
     this.storageMap = new Map();

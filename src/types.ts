@@ -1,18 +1,19 @@
 export interface ISocketMessage {
-  topic:string
-  type: string
-  payload: string
+  offset?: number;
+  topic: string;
+  type: string;
+  payload: string;
 }
 
-export class TimeSet<T> extends Set<T>{
-    public updateTime:number;
-    constructor(...args:any){
-        super(...args)
-        this.updateTime=Date.now()
-    }
-    add(value:any){
-        super.add(value);
-        this.updateTime=Date.now()
-        return this;
-    }
+export class TimeArray<T> extends Array<T> {
+  public updateTime: number;
+  constructor(...args: any) {
+    super(...args);
+    this.updateTime = Date.now();
+  }
+  push(value: any) {
+    super.push(value);
+    this.updateTime = Date.now();
+    return this.length;
+  }
 }
