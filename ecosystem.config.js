@@ -22,16 +22,15 @@ module.exports = {
     // "production" is the environment name
     production: {
       // SSH key path, default to $HOME/.ssh
-      key: "~/Desktop/relay",
       // SSH user
       user: 'ubuntu',
       // SSH host
-      host: ['124.156.121.100'],
+      host: ['139.155.7.172'],
       // SSH options with no command-line flag, see 'man ssh'
       // can be either a single string or an array of strings
       ssh_options: 'StrictHostKeyChecking=no',
       // GIT remote/branch
-      ref: 'origin/vite',
+      ref: 'origin/vite_test',
       // GIT remote
       repo: 'https://github.com/vitelabs/node-walletconnect-bridge.git',
       // path in the server
