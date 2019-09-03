@@ -34,7 +34,7 @@ module.exports = {
       // GIT remote
       repo: 'https://github.com/vitelabs/node-walletconnect-bridge.git',
       // path in the server
-      path: '/var/www/bifrost',
+      path: '/var/project',
       // Pre-setup command or path to a script on your local machine
       //   // Post-setup commands or path to a script on the host machine
       //   // eg: placing configurations in the shared dir etc
