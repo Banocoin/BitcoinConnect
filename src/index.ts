@@ -2,7 +2,7 @@ import fastify from "fastify";
 import Helmet from "fastify-helmet";
 import WebSocket from "ws";
 import config from "./config";
-import pubsub, { agent } from "./pubsub";
+import pubsub, { agent ,msgs} from "./pubsub";
 import { setNotification } from "./notification";
 import pkg from "../package.json";
 import { logger } from "./logger";
@@ -68,7 +68,17 @@ app.post("/subscribe", (req, res) => {
     success: true
   });
 });
+app.get("/topic", (req, res) => {
+  const { topic, offset=0 } = req.query;
 
+  if (!topic || typeof topic !== "string") {
+    res.status(400).send({
+      message: "Error: missing or invalid topic field"
+    });
+  }
+  const queu=msgs.get(topic);
+  res.status(200).send(queu);
+});
 const wsServer = new WebSocket.Server({ server: app.server });
 
 app.ready(() => {

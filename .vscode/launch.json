@@ -10,7 +10,8 @@
       "name": "LanchTs",
       "program": "${workspaceFolder}/src/index.ts",
       "preLaunchTask": "tsc: watch - tsconfig.json",
-      "outFiles": ["${workspaceFolder}/build/src/**/*.js"]
+      "outFiles": ["${workspaceFolder}/build/src/**/*.js"],
+      "outputCapture": "std"
     }
   ]
 }

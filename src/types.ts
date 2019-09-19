@@ -1,7 +1,9 @@
+import WebSocket from "ws";
 export interface ISocketMessage {
+  version?: number;
   offset?: number;
   topic: string;
-  type: string;
+  type: "pub" | "sub" | "ping";
   payload: string;
 }
 
@@ -15,5 +17,13 @@ export class TimeArray<T> extends Array<T> {
     super.push(value);
     this.updateTime = Date.now();
     return this.length;
+  }
+}
+
+export class VcClient extends WebSocket {
+  public version: number;
+  constructor(address: string, options?: WebSocket.ClientOptions | undefined) {
+    super(address, options);
+    this.version=1;
   }
 }
