@@ -3,9 +3,7 @@ import { ISocketMessage } from "./types";
 import { pushNotification } from "./notification";
 import { logger } from "./logger";
 import { Agent } from "./statistics";
-import { TimeArray,VcClient } from "./types";
-
-
+import { TimeArray, VcClient } from "./types";
 
 export const subs: Map<string, Set<VcClient>> = new Map();
 export let msgs: Map<string, TimeArray<ISocketMessage>> = new Map();
@@ -53,22 +51,23 @@ const SubController = (socket: VcClient, socketMessage: ISocketMessage) => {
   const offset = Number.isInteger(socketMessage.offset as number)
     ? (socketMessage.offset as number) + 1
     : 0;
-  const version = socketMessage.version || 1;
+  const version = socketMessage.bridgeVersion || 1;
 
   logger.debug(`subbbb:${topic}------offset:${offset}`);
-  socket.version=version
+  socket.version = version;
   setSub(topic, socket);
   const msgQueu = msgs.get(socketMessage.topic);
   if (msgQueu && msgQueu.length) {
-    msgQueu
-      .slice(offset)
-      .forEach((pendingMessage: ISocketMessage) =>
-        socketSend(socket, pendingMessage)
-      );
+    msgQueu.slice(offset).forEach((pendingMessage: ISocketMessage, i) => {
+      socketSend(socket, pendingMessage);
+      if (pendingMessage.isSessionRequest) {
+        msgQueu.splice(i, 1);
+      }
+    });
   }
 };
 
-const PubController = (socketMessage: ISocketMessage) => {
+const PubController = (socketMessage: ISocketMessage, pub_session = false) => {
   logger.debug(`pubController,receive${socketMessage}`);
   const subscribers = getSub(socketMessage.topic);
   let msgQueu = msgs.get(socketMessage.topic);
@@ -85,6 +84,9 @@ const PubController = (socketMessage: ISocketMessage) => {
     subscribers.forEach((socket: VcClient) =>
       socketSend(socket, socketMessage)
     );
+    if (socketMessage.isSessionRequest) {
+      msgs.delete(socketMessage.topic);
+    }
   }
 };
 

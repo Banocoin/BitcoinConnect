@@ -6,6 +6,8 @@ import pubsub, { agent ,msgs} from "./pubsub";
 import { setNotification } from "./notification";
 import pkg from "../package.json";
 import { logger } from "./logger";
+import {VcClient} from "./types"
+
 const startAt = new Date();
 
 const app = fastify({
@@ -82,7 +84,7 @@ app.get("/topic", (req, res) => {
 const wsServer = new WebSocket.Server({ server: app.server });
 
 app.ready(() => {
-  wsServer.on("connection", (socket: WebSocket) => {
+  wsServer.on("connection", (socket: VcClient) => {
     socket.on("message", async data => {
       pubsub(socket, data);
     });

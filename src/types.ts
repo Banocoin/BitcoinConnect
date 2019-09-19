@@ -1,6 +1,7 @@
 import WebSocket from "ws";
 export interface ISocketMessage {
-  version?: number;
+  isSessionRequest?:boolean
+  bridgeVersion?: number;
   offset?: number;
   topic: string;
   type: "pub" | "sub" | "ping";
