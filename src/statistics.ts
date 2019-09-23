@@ -1,20 +1,18 @@
-
 const STEP = 10 * 60 * 1000;
 const DEAD_COUNT = 6;
 const MAX_STATISTICS_RECORDS = 1000;
-const DEAD_TIME=60*60*1000;
+const DEAD_TIME = 60 * 60 * 1000;
 import WebSocket from "ws";
 import { logger } from "./logger";
-import { ISocketMessage } from './types';
-import {TimeArray} from "./types";
-
+import { ISocketMessage } from "./types";
+import { TimeArray } from "./types";
 
 interface IStatisticsInfo {
   alive: number;
   gc: number;
   notAlive: number;
-  pendingMsgTopic:number;
-  gcPendingMsg:number;
+  pendingMsgTopic: number;
+  gcPendingMsg: number;
 }
 
 export class Agent {
@@ -23,17 +21,26 @@ export class Agent {
   private statisticsInfo: Array<IStatisticsInfo>;
   private step: 0;
   private startTime: Date;
-  private msgTarget:Map<string,TimeArray<ISocketMessage>>;
-  constructor(target: Map<string, Set<WebSocket>>,msgTarget:Map<string,TimeArray<ISocketMessage>>) {
+  private msgTarget: Map<string, TimeArray<ISocketMessage>>;
+  constructor(
+    target: Map<string, Set<WebSocket>>,
+    msgTarget: Map<string, TimeArray<ISocketMessage>>
+  ) {
     this.target = target;
-    this.msgTarget=msgTarget;
+    this.msgTarget = msgTarget;
     this.storageMap = new Map();
     this.step = 0;
     this.startTime = new Date();
     this.statisticsInfo = [];
     setInterval(() => {
       this.step += 1;
-      const state = { alive: 0, gc: 0, notAlive: 0,pendingMsgTopic:0,gcPendingMsg:0 };
+      const state = {
+        alive: 0,
+        gc: 0,
+        notAlive: 0,
+        pendingMsgTopic: 0,
+        gcPendingMsg: 0
+      };
 
       try {
         this.checkMap(this.target, state);
@@ -43,7 +50,7 @@ export class Agent {
       } finally {
         this.statisticsInfo.push(state);
       }
-      if (this.statisticsInfo.length > MAX_STATISTICS_RECORDS+100) {
+      if (this.statisticsInfo.length > MAX_STATISTICS_RECORDS + 100) {
         this.statisticsInfo = this.statisticsInfo.slice(
           -MAX_STATISTICS_RECORDS
         );
@@ -76,17 +83,20 @@ export class Agent {
         this.target.delete(key);
       }
     }
-    for (const key of this.msgTarget.keys()){
-        const pendingMsgs=this.msgTarget.get(key);
-        state.pendingMsgTopic+=1;
-        if(pendingMsgs&&(Date.now()-pendingMsgs.updateTime)>=DEAD_TIME){
-           this.msgTarget.delete(key);
-           state.gcPendingMsg+=1;
-        }
+    for (const key of this.msgTarget.keys()) {
+      const pendingMsgs = this.msgTarget.get(key);
+      state.pendingMsgTopic += 1;
+      if (pendingMsgs && Date.now() - pendingMsgs.updateTime >= DEAD_TIME) {
+        this.msgTarget.delete(key);
+        state.gcPendingMsg += 1;
+      }
     }
   }
 
   getStatisticsInfo(n: number = 100) {
+    if (typeof n !== "number") {
+      return "{}";
+    }
     return JSON.stringify({
       data: this.statisticsInfo.slice(-n),
       step: this.step,
