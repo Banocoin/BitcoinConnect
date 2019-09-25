@@ -39,6 +39,14 @@ function socketSend(socket: VcClient, socketMessage: ISocketMessage) {
   if (socket.readyState === 1) {
     logger.debug(`out  =>${JSON.stringify(socketMessage)}`);
     try {
+      if (!socket.version || socket.version < 2) {
+        const { payload, topic, type } = socketMessage;
+        socketMessage = {
+          payload,
+          topic,
+          type
+        };
+      }
       socket.send(JSON.stringify(socketMessage)); // todo--send fail
     } catch (e) {
       logger.debug(`sendFail:${socketMessage}`);
