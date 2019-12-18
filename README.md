@@ -1,10 +1,12 @@
-# WalletConnect Bridge Server
+# ViteConnect Bridge Server
 
-Bridge Server for relaying WalletConnect connections
+Fork from [node-walletconnect-bridge](https://github.com/WalletConnect/node-walletconnect-bridge)
 
 ## Development
 
 ```bash
+yarn
+
 yarn dev
 ```
 
@@ -24,7 +26,7 @@ yarn build
 yarn start
 ```
 
-3. Server accessible from host:
+3. Check
 
 ```bash
 $ curl http://localhost:5000/hello
@@ -45,7 +47,7 @@ make build-docker
 docker run -p 5000:5000 walletconnect/node-walletconnect-bridge
 ```
 
-3. Server accessible from host:
+3. Check:
 
 ```bash
 $ curl http://localhost:5000/hello
