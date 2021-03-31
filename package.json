@@ -14,7 +14,7 @@
   "dependencies": {
     "@types/sqlite3": "^3.1.5",
     "@types/winston": "^2.4.4",
-    "axios": "^0.18.0",
+    "axios": "^0.21.1",
     "babel-polyfill": "^6.26.0",
     "core-js": "^2.6.5",
     "fastify": "^2.15.1",
