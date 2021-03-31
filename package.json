@@ -16,7 +16,7 @@
     "@types/winston": "^2.4.4",
     "axios": "^0.21.1",
     "babel-polyfill": "^6.26.0",
-    "core-js": "^2.6.5",
+    "core-js": "2",
     "fastify": "^2.15.1",
     "fastify-helmet": "^3.0.0",
     "sqlite3": "^4.0.9",
@@ -27,7 +27,6 @@
     "dev": "babel-node --extensions '.ts' src/index.ts",
     "build": "babel ./src --extensions '.ts' --out-dir ./build",
     "build:docker": "docker build -t vitelabs/vite-connect-server .",
-    "test": "mocha --require ./babel-polyfill.js test/**/*.spec.ts",
     "start": "node ./build",
     "deploy": "NODE_ENV=production pm2 start ./build --name=bridge"
   },
@@ -57,6 +56,7 @@
     "eslint-plugin-node": "^7.0.1",
     "eslint-plugin-promise": "^4.0.1",
     "eslint-plugin-standard": "^4.0.0",
+    "mocha": "^8.3.2",
     "tslint": "^5.11.0",
     "tslint-config-standard": "^8.0.1",
     "typescript": "^3.1.3"
