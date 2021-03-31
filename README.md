@@ -38,13 +38,13 @@ $ curl http://localhost:5000/hello
 1. Build the container with:
 
 ```bash
-make build-docker
+yarn build:docker
 ```
 
 2. Run the container with:
 
 ```bash
-docker run -p 5000:5000 walletconnect/node-walletconnect-bridge
+docker run -p 5000:5000 vitelabs/vite-connect-server
 ```
 
 3. Check:
