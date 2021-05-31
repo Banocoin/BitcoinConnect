@@ -21,7 +21,7 @@
     "fastify-helmet": "^3.0.0",
     "sqlite3": "^4.0.9",
     "winston": "^3.2.1",
-    "ws": "^7.1.2"
+    "ws": "^7.4.6"
   },
   "scripts": {
     "dev": "babel-node --extensions '.ts' src/index.ts",
